@@ -61,18 +61,21 @@ class LaneDetection:
 
         return bird_eye_view
     
-    def mask_hls_areas(image, lower_hls, upper_hls, blur_ksize=(15, 15)):
-    blurred_image = cv2.GaussianBlur(image, blur_ksize, 0)
-    hls_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HLS)
-    mask = cv2.inRange(hls_image, np.array(lower_hls), np.array(upper_hls))
-    return mask
+    def mask_hls_areas(self, image, lower_hls, upper_hls, blur_ksize=(15, 15)):
+        # 블러링 처리
+        blurred_image = cv2.GaussianBlur(image, blur_ksize, 0)
+        # HLS 색 공간으로 변환
+        hls_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HLS)
+        # 범위에 해당하는 마스크 생성
+        mask = cv2.inRange(hls_image, np.array(lower_hls), np.array(upper_hls))
+        return mask
     
     def sliding_window_demo(self, image, nwindows=18, margin=50, minpix=1):
 
         lower_hls = [0, 220, 0]
         upper_hls = [180, 255, 255]
 
-        masked_image = selfmask_hls_areas(image, lower_hls, upper_hls)
+        masked_image = self.mask_hls_areas(image, lower_hls, upper_hls)
         bottom_third = masked_image.shape[0] * 2 // 3
         histogram = np.sum(masked_image[bottom_third:, :], axis=0)
 
@@ -81,10 +84,10 @@ class LaneDetection:
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
         # left_lane_boundary = image.shape[1] // 3
-        right_lane_boundary = 1.6 * image.shape[1] // 3
+        right_lane_boundary = 0 * image.shape[1] // 3
 
         # apply_left_window = left_lane_boundary >= leftx_base > 0
-        apply_right_window = rightx_base >= right_lane_boundary and rightx_base > midpoint
+        apply_right_window = rightx_base >= right_lane_boundary 
 
         # if not apply_left_window and self.prev_left_base is not None:            # fig, aprev_left_base is not None:
         #     leftx_base = self.prev_left_base
