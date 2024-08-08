@@ -175,7 +175,7 @@ class LaneDetection:
         #     center_fitx = (left_fitx + right_fitx) / 2
         #     return ploty, center_fitx, left_fitx, right_fitx
 
-        elif right_fit is not None:
+        if right_fit is not None:
             right_fitx = right_fit[0] * ploty ** 3 + right_fit[1] * ploty ** 2 + right_fit[2] * ploty + right_fit[3]
             center_fitx = right_fitx - pixel_shift
             return ploty, center_fitx, None, right_fitx
