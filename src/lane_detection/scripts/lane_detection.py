@@ -23,13 +23,13 @@ class LaneDetection:
         self.o_steer = Float32()
 
         # variables
-        self.prev_left_base = None
+        # self.prev_left_base = None
         self.prev_right_base = None
-        self.fixed_points = [(6, 472), (590, 472), (396, 250), (147, 250)]
+        self.fixed_points = [(48, 475), (528, 478), (351, 252), (92, 257)]
         
         # 픽셀 당 거리(m/pixel)
-        self.x_m_per_pixel = 1.62367454495 * 10 ** -3       # 픽셀 당 거리 (1.62367454495mm -> 1.62367454495 * 10 ** -3 m/pixel)
-        self.y_m_per_pixel = 3.643428499552204 * 10 ** -3   # 픽셀 당 거리 (3.643428499552204mm -> 3.643428499552204 * 10 ** -3 m/pixel)
+        self.x_m_per_pixel = 3.29499311 * 10 ** -4       # 픽셀 당 거리 -> 수정됨
+        self.y_m_per_pixel = 3.29499311 * 10 ** -4   # 픽셀 당 거리 -> 수정됨
         self.real_shift_distance = 0.45                     # 실제 이동해야 할 거리 (0.45m, 즉 450mm)
         self.pixel_shift = self.real_shift_distance / self.x_m_per_pixel  # 실제 평행이동할 픽셀 거리
         
@@ -61,34 +61,35 @@ class LaneDetection:
 
         return bird_eye_view
     
-    def mask_rgb_areas(self, image, lower_rgb, upper_rgb, blur_ksize=(15, 15)):
-        blurred_image = cv2.GaussianBlur(image, blur_ksize, 0)
-        mask = cv2.inRange(blurred_image, np.array(lower_rgb), np.array(upper_rgb))
-        return mask
+    def mask_hls_areas(image, lower_hls, upper_hls, blur_ksize=(15, 15)):
+    blurred_image = cv2.GaussianBlur(image, blur_ksize, 0)
+    hls_image = cv2.cvtColor(blurred_image, cv2.COLOR_BGR2HLS)
+    mask = cv2.inRange(hls_image, np.array(lower_hls), np.array(upper_hls))
+    return mask
     
     def sliding_window_demo(self, image, nwindows=18, margin=50, minpix=1):
 
-        lower_rgb = [225, 225, 225]
-        upper_rgb = [255, 255, 255]
+        lower_hls = [0, 220, 0]
+        upper_hls = [180, 255, 255]
 
-        masked_image = self.mask_rgb_areas(image, lower_rgb, upper_rgb)
+        masked_image = selfmask_hls_areas(image, lower_hls, upper_hls)
         bottom_third = masked_image.shape[0] * 2 // 3
         histogram = np.sum(masked_image[bottom_third:, :], axis=0)
 
         midpoint = int(histogram.shape[0] // 2)
-        leftx_base = np.argmax(histogram[:midpoint])
+        # leftx_base = np.argmax(histogram[:midpoint])
         rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
-        left_lane_boundary = image.shape[1] // 3
+        # left_lane_boundary = image.shape[1] // 3
         right_lane_boundary = 1.6 * image.shape[1] // 3
 
-        apply_left_window = left_lane_boundary >= leftx_base > 0
+        # apply_left_window = left_lane_boundary >= leftx_base > 0
         apply_right_window = rightx_base >= right_lane_boundary and rightx_base > midpoint
 
-        if not apply_left_window and self.prev_left_base is not None:            # fig, aprev_left_base is not None:
-            leftx_base = self.prev_left_base
-        else:
-            self.prev_leftx_base = leftx_base
+        # if not apply_left_window and self.prev_left_base is not None:            # fig, aprev_left_base is not None:
+        #     leftx_base = self.prev_left_base
+        # else:
+        #     self.prev_leftx_base = leftx_base
 
         if not apply_right_window and self.prev_right_base is not None:
             rightx_base = self.prev_right_base
@@ -104,37 +105,37 @@ class LaneDetection:
         nonzeroy = np.array(nonzero[0])
         nonzerox = np.array(nonzero[1])
 
-        left_lane_inds = []
+        # left_lane_inds = []
         right_lane_inds = []
 
-        left_windows = []
+        # left_windows = []
         right_windows = []
 
-        left_lane_points_x = []
-        left_lane_points_y = []
+        # left_lane_points_x = []
+        # left_lane_points_y = []
         right_lane_points_x = []
         right_lane_points_y = []
 
         for window in range(nwindows):
             win_y_low = masked_image.shape[0] - (window + 1) * window_height
             win_y_high = masked_image.shape[0] - window * window_height
-            win_xleft_low = leftx_current - margin
-            win_xleft_high = leftx_current + margin
+            # win_xleft_low = leftx_current - margin
+            # win_xleft_high = leftx_current + margin
             win_xright_low = rightx_current - margin
             win_xright_high = rightx_current + margin
 
-            if apply_left_window:
-                good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) &
-                                (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
-                if len(good_left_inds) > minpix:
-                    left_lane_inds.append(good_left_inds)
-                    leftx_current = int(np.mean(nonzerox[good_left_inds]))
-                    left_windows.append((win_xleft_low, win_y_low, win_xleft_high, win_y_high))
+            # if apply_left_window:
+            #     good_left_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) &
+            #                     (nonzerox >= win_xleft_low) & (nonzerox < win_xleft_high)).nonzero()[0]
+            #     if len(good_left_inds) > minpix:
+            #         left_lane_inds.append(good_left_inds)
+            #         leftx_current = int(np.mean(nonzerox[good_left_inds]))
+            #         left_windows.append((win_xleft_low, win_y_low, win_xleft_high, win_y_high))
 
-                    midpoint_x = int(np.mean(nonzerox[good_left_inds]))
-                    midpoint_y = int(np.mean(nonzeroy[good_left_inds]))
-                    left_lane_points_x.append(midpoint_x)
-                    left_lane_points_y.append(midpoint_y)
+            #         midpoint_x = int(np.mean(nonzerox[good_left_inds]))
+            #         midpoint_y = int(np.mean(nonzeroy[good_left_inds]))
+            #         left_lane_points_x.append(midpoint_x)
+            #         left_lane_points_y.append(midpoint_y)
 
             if apply_right_window:
                 good_right_inds = ((nonzeroy >= win_y_low) & (nonzeroy < win_y_high) &
@@ -149,37 +150,37 @@ class LaneDetection:
                     right_lane_points_x.append(midpoint_x)
                     right_lane_points_y.append(midpoint_y)
 
-        if len(left_lane_points_x) >= 4 and len(left_lane_points_y) >= 4:
-            left_fit = np.polyfit(left_lane_points_y, left_lane_points_x, 3)
-        else:
-            left_fit = None
+        # if len(left_lane_points_x) >= 4 and len(left_lane_points_y) >= 4:
+        #     left_fit = np.polyfit(left_lane_points_y, left_lane_points_x, 3)
+        # else:
+        #     left_fit = None
 
         if len(right_lane_points_x) >= 4 and len(right_lane_points_y) >= 4:
             right_fit = np.polyfit(right_lane_points_y, right_lane_points_x, 3)
         else:
             right_fit = None
 
-        return left_fit, right_fit
+        return None, right_fit
 
         
     def calculate_path(self, left_fit, right_fit, image_shape, pixel_shift):
         ploty = np.linspace(0, image_shape[0] - 1, image_shape[0])
 
-        if left_fit is not None and right_fit is not None:
-            left_fitx = left_fit[0] * ploty ** 3 + left_fit[1] * ploty ** 2 + left_fit[2] * ploty + left_fit[3]
-            right_fitx = right_fit[0] * ploty ** 3 + right_fit[1] * ploty ** 2 + right_fit[2] * ploty + right_fit[3]
-            center_fitx = (left_fitx + right_fitx) / 2
-            return ploty, center_fitx, left_fitx, right_fitx
+        # if left_fit is not None and right_fit is not None:
+        #     left_fitx = left_fit[0] * ploty ** 3 + left_fit[1] * ploty ** 2 + left_fit[2] * ploty + left_fit[3]
+        #     right_fitx = right_fit[0] * ploty ** 3 + right_fit[1] * ploty ** 2 + right_fit[2] * ploty + right_fit[3]
+        #     center_fitx = (left_fitx + right_fitx) / 2
+        #     return ploty, center_fitx, left_fitx, right_fitx
 
         elif right_fit is not None:
             right_fitx = right_fit[0] * ploty ** 3 + right_fit[1] * ploty ** 2 + right_fit[2] * ploty + right_fit[3]
             center_fitx = right_fitx - pixel_shift
             return ploty, center_fitx, None, right_fitx
 
-        elif left_fit is not None:
-            left_fitx = left_fit[0] * ploty ** 3 + left_fit[1] * ploty ** 2 + left_fit[2] * ploty + left_fit[3]
-            center_fitx = left_fitx + pixel_shift
-            return ploty, center_fitx, left_fitx, None
+        # elif left_fit is not None:
+        #     left_fitx = left_fit[0] * ploty ** 3 + left_fit[1] * ploty ** 2 + left_fit[2] * ploty + left_fit[3]
+        #     center_fitx = left_fitx + pixel_shift
+        #     return ploty, center_fitx, left_fitx, None
 
         else:
             return None, None, None, None
@@ -226,8 +227,8 @@ class LaneDetection:
                 # Convert coordinates to meters
                 ploty_m = (480 - ploty) * self.y_m_per_pixel
 
-                if left_fitx is not None:
-                    left_fitx_m = (340 - left_fitx) * self.x_m_per_pixel
+                # if left_fitx is not None:
+                #     left_fitx_m = (340 - left_fitx) * self.x_m_per_pixel
 
                 if right_fitx is not None:
                     right_fitx_m = (340 - right_fitx) * self.x_m_per_pixel
