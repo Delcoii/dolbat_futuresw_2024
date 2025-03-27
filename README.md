@@ -1,5 +1,5 @@
 # Dolbat 2024 Future Automotive SW Competition Repository
-한양대학교 자동차지능연구실 학부연구생 박성훈 지도하에 만듬 ㅇㅇ
+Created under the guidance of undergraduate researcher Park Seonghun at the Automotive Intelligence Lab of Hanyang University.
 
 ## Prerequisites
 * for Ubuntu 20.04 (noetic)
